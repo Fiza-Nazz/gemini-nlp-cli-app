@@ -1,8 +1,13 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 🔐 Secure API key from Streamlit secrets
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+# ✅ Safely load API key from secrets with fallback
+try:
+    GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+except KeyError:
+    st.error("❌ GOOGLE_API_KEY not found in .streamlit/secrets.toml")
+    st.stop()
+
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Gemini model
@@ -49,24 +54,33 @@ def sentiment_analysis():
     st.subheader("🧠 Sentiment Analysis")
     user_text = st.text_area("Enter your text:")
     if st.button("Analyze Sentiment"):
-        response = model.generate_content(f"Give me the sentiment of this sentence: {user_text}")
-        st.success(response.text)
+        if user_text.strip():
+            response = model.generate_content(f"Give me the sentiment of this sentence: {user_text}")
+            st.success(response.text)
+        else:
+            st.warning("Please enter text before analyzing.")
 
 # Language translation
 def language_translation():
     st.subheader("🌐 Language Translation")
     user_text = st.text_area("Enter text to translate into Urdu:")
     if st.button("Translate"):
-        response = model.generate_content(f"Give me Urdu translation of this sentence: {user_text}")
-        st.success(response.text)
+        if user_text.strip():
+            response = model.generate_content(f"Give me Urdu translation of this sentence: {user_text}")
+            st.success(response.text)
+        else:
+            st.warning("Please enter text to translate.")
 
 # Language detection
 def language_detection():
     st.subheader("🔍 Language Detection")
     user_text = st.text_area("Enter text to detect language:")
     if st.button("Detect Language"):
-        response = model.generate_content(f"Detect the language of this sentence: {user_text}")
-        st.success(response.text)
+        if user_text.strip():
+            response = model.generate_content(f"Detect the language of this sentence: {user_text}")
+            st.success(response.text)
+        else:
+            st.warning("Please enter text for language detection.")
 
 # Logout function
 def logout():
@@ -74,7 +88,7 @@ def logout():
     st.session_state.user_email = ""
     st.rerun()
 
-# Dashboard after login
+# Dashboard
 def dashboard():
     st.title("🎯 NLP Dashboard")
     st.write(f"Welcome, {st.session_state.users[st.session_state.user_email][0]}!")
@@ -91,7 +105,7 @@ def dashboard():
         language_detection()
     st.button("Logout", on_click=logout)
 
-# Main function
+# Main
 def main():
     st.set_page_config(page_title="NLP App with Gemini AI", layout="centered")
     st.title("💬 Gemini NLP App")
